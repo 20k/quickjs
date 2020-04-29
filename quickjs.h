@@ -918,7 +918,7 @@ int JS_SetModuleExportList(JSContext *ctx, JSModuleDef *m,
 //manually exported functions
 JSValueConst JS_GetActiveFunction(JSContext *ctx);
 JSValue js_proxy_constructor(JSContext *ctx, JSValueConst this_val,
-                                    int argc, JSValueConst *argv)
+                                    int argc, JSValueConst *argv);
 
 #undef js_unlikely
 #undef js_force_inline
