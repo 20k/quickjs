@@ -1,3 +1,6 @@
+#ifndef HEADER_AEC0A23CBF9D5EBE
+#define HEADER_AEC0A23CBF9D5EBE
+
 /*
  * QuickJS Javascript Engine
  *
@@ -831,7 +834,7 @@ static inline JSValue JS_NewCFunctionMagic(JSContext *ctx, JSCFunctionMagic *fun
 {
     return JS_NewCFunction2(ctx, (JSCFunction *)func, name, length, cproto, magic);
 }
-void JS_SetConstructor(JSContext *ctx, JSValueConst func_obj, 
+void JS_SetConstructor(JSContext *ctx, JSValueConst func_obj,
                        JSValueConst proto);
 
 /* C property definition */
@@ -912,6 +915,8 @@ int JS_SetModuleExport(JSContext *ctx, JSModuleDef *m, const char *export_name,
 int JS_SetModuleExportList(JSContext *ctx, JSModuleDef *m,
                            const JSCFunctionListEntry *tab, int len);
 
+JSValueConst JS_GetActiveFunction(JSContext *ctx);
+
 #undef js_unlikely
 #undef js_force_inline
 
@@ -920,3 +925,5 @@ int JS_SetModuleExportList(JSContext *ctx, JSModuleDef *m,
 #endif
 
 #endif /* QUICKJS_H */
+#endif // header guard
+
