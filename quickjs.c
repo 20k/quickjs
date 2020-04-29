@@ -42905,7 +42905,7 @@ static const JSClassExoticMethods js_proxy_exotic_methods = {
     .set_property = js_proxy_set,
 };
 
-static JSValue js_proxy_constructor(JSContext *ctx, JSValueConst this_val,
+JSValue js_proxy_constructor(JSContext *ctx, JSValueConst this_val,
                                     int argc, JSValueConst *argv)
 {
     JSValueConst target, handler;
