@@ -35987,7 +35987,7 @@ static const JSCFunctionListEntry js_object_proto_funcs[] = {
     JS_CFUNC_DEF("hasOwnProperty", 1, js_object_hasOwnProperty ),
     JS_CFUNC_DEF("isPrototypeOf", 1, js_object_isPrototypeOf ),
     JS_CFUNC_DEF("propertyIsEnumerable", 1, js_object_propertyIsEnumerable ),
-    JS_CGETSET_DEF("__proto__", js_object_get___proto__, js_object_set___proto__ ),
+    //JS_CGETSET_DEF("__proto__", js_object_get___proto__, js_object_set___proto__ ),
     JS_CFUNC_MAGIC_DEF("__defineGetter__", 2, js_object___defineGetter__, 0 ),
     JS_CFUNC_MAGIC_DEF("__defineSetter__", 2, js_object___defineGetter__, 1 ),
     JS_CFUNC_MAGIC_DEF("__lookupGetter__", 1, js_object___lookupGetter__, 0 ),
