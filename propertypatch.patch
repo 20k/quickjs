@@ -1,0 +1,115 @@
+diff --git a/quickjs-libc.c b/quickjs-libc.c
+index 088730e..f9b660a 100644
+--- a/quickjs-libc.c
++++ b/quickjs-libc.c
+@@ -47,6 +47,12 @@
+ #include <sys/wait.h>
+ #if defined(__APPLE__)
+ typedef sig_t sighandler_t;
++
++#if !defined(environ)
++#   include <crt_externs.h>
++#   define environ (*_NSGetEnviron())
++#endif
++
+ #endif
+ #endif
+ 
+diff --git a/quickjs.c b/quickjs.c
+index 73ce704..4ee6bd2 100644
+--- a/quickjs.c
++++ b/quickjs.c
+@@ -1139,6 +1139,7 @@ static void reset_weak_ref(JSRuntime *rt, JSObject *p);
+ static BOOL typed_array_is_detached(JSContext *ctx, JSObject *p);
+ static uint32_t typed_array_get_length(JSContext *ctx, JSObject *p);
+ static JSValue JS_ThrowTypeErrorDetachedArrayBuffer(JSContext *ctx);
++static JSValue JS_ThrowPropertyError(JSContext *ctx, const char *fmt, JSAtom prop);
+ static JSVarRef *get_var_ref(JSContext *ctx, JSStackFrame *sf, int var_idx,
+                              BOOL is_arg);
+ static JSValue js_generator_function_call(JSContext *ctx, JSValueConst func_obj,
+@@ -6792,6 +6793,21 @@ static int JS_AutoInitProperty(JSContext *ctx, JSObject *p, JSAtom prop, JSPrope
+     return ret;
+ }
+ 
++static JSValue JS_ThrowPropertyError(JSContext *ctx, const char *fmt, JSAtom prop)
++{
++    const char *cstring;
++    JSValue exc;
++
++    cstring = JS_AtomToCString(ctx, prop);
++    if (!cstring) {
++        return JS_ThrowTypeError(ctx, fmt, "<unknown>");
++    }
++
++    exc = JS_ThrowTypeError(ctx, fmt, cstring);
++    JS_FreeCString(ctx, cstring);
++    return exc;
++}
++
+ JSValue JS_GetPropertyInternal(JSContext *ctx, JSValueConst obj,
+                                JSAtom prop, JSValueConst this_obj,
+                                BOOL throw_ref_error)
+@@ -6804,9 +6820,10 @@ JSValue JS_GetPropertyInternal(JSContext *ctx, JSValueConst obj,
+     tag = JS_VALUE_GET_TAG(obj);
+     if (unlikely(tag != JS_TAG_OBJECT)) {
+         switch(tag) {
+-        case JS_TAG_NULL:
++         case JS_TAG_NULL:
++            return JS_ThrowPropertyError(ctx, "Cannot read property '%s' of null", prop);
+         case JS_TAG_UNDEFINED:
+-            return JS_ThrowTypeError(ctx, "value has no property");
++            return JS_ThrowPropertyError(ctx, "Cannot read property '%s' of undefined", prop);
+         case JS_TAG_EXCEPTION:
+             return JS_EXCEPTION;
+         case JS_TAG_STRING:
+@@ -8109,10 +8126,13 @@ int JS_SetPropertyInternal(JSContext *ctx, JSValueConst this_obj,
+     tag = JS_VALUE_GET_TAG(this_obj);
+     if (unlikely(tag != JS_TAG_OBJECT)) {
+         switch(tag) {
+-        case JS_TAG_NULL:
+-        case JS_TAG_UNDEFINED:
++         case JS_TAG_NULL:
++            JS_FreeValue(ctx, val);
++            JS_ThrowPropertyError(ctx, "Cannot set property '%s' of null", prop);
++            return -1;
++         case JS_TAG_UNDEFINED:
+             JS_FreeValue(ctx, val);
+-            JS_ThrowTypeError(ctx, "value has no property");
++            JS_ThrowPropertyError(ctx, "Cannot set property '%s' of undefined", prop);
+             return -1;
+         default:
+             /* even on a primitive type we can have setters on the prototype */
+diff --git a/tests/test_builtin.js b/tests/test_builtin.js
+index 11a4b66..190ad2b 100644
+--- a/tests/test_builtin.js
++++ b/tests/test_builtin.js
+@@ -633,6 +633,24 @@ function test_generator()
+     assert(v.value === undefined && v.done === true);
+ }
+ 
++function test_undefined_access() {
++    const obj = undefined;
++
++    function getError(fn) {
++        try {
++            fn();
++        } catch (err) {
++            return err.message;
++        }
++        throw new Error('Call should have failed');
++    }
++
++    assert(getError(() => obj.message.hello), `Cannot read property 'message' of undefined`);
++    assert(getError(() => null.message), `Cannot read property 'message' of null`);
++    assert(getError(() => { obj.message = 'test' }), `Cannot set property 'message' of undefined`);
++    assert(getError(() => { null.message = 'test' }), `Cannot set property 'message' of null`);
++}
++
+ test();
+ test_function();
+ test_enum();
+@@ -649,3 +667,4 @@ test_symbol();
+ test_map();
+ test_weak_map();
+ test_generator();
++test_undefined_access();
