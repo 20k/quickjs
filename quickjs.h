@@ -825,6 +825,8 @@ void JS_SetHostPromiseRejectionTracker(JSRuntime *rt, JSHostPromiseRejectionTrac
 /* return != 0 if the JS code needs to be interrupted */
 typedef int JSInterruptHandler(JSRuntime *rt, void *opaque);
 void JS_SetInterruptHandler(JSRuntime *rt, JSInterruptHandler *cb, void *opaque);
+JSInterruptHandler* JS_GetInterruptHandler(JSRuntime *rt);
+void* JS_GetInterruptHandlerOpaque(JSRuntime *rt);
 /* if can_block is TRUE, Atomics.wait() can be used */
 void JS_SetCanBlock(JSRuntime *rt, JS_BOOL can_block);
 
